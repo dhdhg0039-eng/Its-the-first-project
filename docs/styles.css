@@ -45,10 +45,11 @@ header {
 .logo {
   font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.8px;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.6rem;
+  text-transform: uppercase;
 }
 
 .header-controls {
@@ -125,6 +126,9 @@ header {
   font-size: 0.85rem;
   opacity: 0.9;
 }
+
+/* Hide visible last-updated text for a cleaner header */
+#update-status { display: none !important; }
 
 .live-indicator {
   display: inline-flex;
@@ -286,8 +290,9 @@ header {
 }
 
 .news-header h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: var(--primary);
+  font-weight: 700;
 }
 
 .view-controls {
@@ -318,18 +323,18 @@ header {
 }
 
 .article-card {
-  background: white;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfc 100%);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: all 0.3s;
+  box-shadow: 0 6px 24px rgba(10,10,15,0.06);
+  transition: transform 0.25s cubic-bezier(.2,.9,.2,1), box-shadow 0.25s;
   display: flex;
   flex-direction: column;
 }
 
 .article-card:hover {
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-  transform: translateY(-4px);
+  box-shadow: 0 14px 40px rgba(10,10,15,0.09);
+  transform: translateY(-6px);
 }
 
 .article-image {
@@ -464,6 +469,7 @@ header {
   padding: 3rem;
   background: white;
   border-radius: 12px;
+  display: none; /* hide by default; shown when fetching */
 }
 
 .spinner {

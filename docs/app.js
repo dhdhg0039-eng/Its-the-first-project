@@ -31,6 +31,9 @@ class App {
       this.articles = newsFetcher.cache || [];
       this.applyFilters();
       this.updateStatus();
+      // ensure loading placeholder is hidden when using cache
+      const loading = document.getElementById('news-loading');
+      if (loading) loading.style.display = 'none';
     }
     
     // Auto-refresh every 30 minutes
