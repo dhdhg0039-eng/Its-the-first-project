@@ -13,7 +13,7 @@ class App {
   }
 
   async init() {
-    console.log('🍷 Beverage Brain initializing...');
+    console.log('Beverage Brain initializing...');
     
     this.setupEventListeners();
     // load brands first so detection works
@@ -39,7 +39,7 @@ class App {
     // Auto-refresh every 30 minutes
     this.updateInterval = setInterval(() => this.loadNews(), 30 * 60 * 1000);
     
-    console.log('✅ Beverage Brain ready!');
+    console.log('Beverage Brain ready!');
   }
 
   setupEventListeners() {
@@ -157,23 +157,11 @@ class App {
       if (pressModal) pressModal.classList.add('hidden');
     });
 
-    // Filter toggle: show/hide sidebar and overlay
-    const filterToggle = document.getElementById('filter-toggle');
-    const sidebar = document.getElementById('sidebar');
+    // Overlay click hides sidebar (mobile) and keeps toggle/overlay behavior consistent
     const overlay = document.getElementById('sidebar-overlay');
-    filterToggle?.addEventListener('click', () => {
-      if (!sidebar) return;
-      const isCollapsed = sidebar.classList.contains('collapsed');
-      if (isCollapsed) {
-        sidebar.classList.remove('collapsed');
-        overlay?.classList.remove('hidden');
-      } else {
-        sidebar.classList.add('collapsed');
-        overlay?.classList.add('hidden');
-      }
-    });
     overlay?.addEventListener('click', () => {
-      sidebar?.classList.add('collapsed');
+      const sidebar = document.getElementById('sidebar');
+      sidebar?.classList.add('hidden');
       overlay.classList.add('hidden');
     });
   }
@@ -242,9 +230,7 @@ class App {
     container.innerHTML = this.filteredArticles.map(article => `
       <div class="article-card">
         <div class="article-image">
-          ${typeof article.image === 'string' && article.image.startsWith('http') 
-            ? `<img src="${article.image}" alt="${article.title}">` 
-            : article.image}
+          ${typeof article.image === 'string' ? `<img src="${article.image}" alt="${article.title}">` : article.image}
         </div>
         <div class="article-content">
           <div class="article-meta">
@@ -259,7 +245,7 @@ class App {
           </div>
           <div class="article-footer">
             <a href="${article.url}" target="_blank">Read Full Article</a>
-            <button class="bookmark-btn" onclick="app.toggleBookmark('${article.url}', this)">📌</button>
+            <button class="bookmark-btn" onclick="app.toggleBookmark('${article.url}', this)">Save</button>
           </div>
         </div>
       </div>
@@ -296,7 +282,7 @@ class App {
     }
 
     hero.classList.remove('hidden');
-    if (img) img.innerHTML = typeof article.image === 'string' && article.image.startsWith('http') ? `<img src="${article.image}" alt="${article.title}">` : (article.image || '🍷');
+    if (img) img.innerHTML = typeof article.image === 'string' ? `<img src="${article.image}" alt="${article.title}">` : (article.image || '');
     if (meta) meta.textContent = (article.source || 'Source');
     title.textContent = article.title || 'Featured article';
     desc.textContent = (article.description || '').replace(/<[^>]+>/g, '').substring(0, 260);

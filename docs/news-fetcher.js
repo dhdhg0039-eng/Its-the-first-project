@@ -63,6 +63,22 @@ class NewsFetcher {
       localStorage.setItem('news_lastUpdate', new Date().toISOString());
       return articles;
     } catch (e) {
+      // try a simple static JSON fallback (useful when server isn't deployed but `docs/data/articles.json` exists)
+      try {
+        const staticRes = await fetch('/data/articles.json', { cache: 'no-store' });
+        if (staticRes && staticRes.ok) {
+          const arr = await staticRes.json();
+          if (Array.isArray(arr) && arr.length) {
+            this.articles = arr;
+            this.cache = arr;
+            localStorage.setItem('news_cache', JSON.stringify(arr));
+            localStorage.setItem('news_lastUpdate', new Date().toISOString());
+            return arr;
+          }
+        }
+      } catch (e2) {
+        // fallback to null
+      }
       return null;
     }
   }
@@ -172,7 +188,7 @@ class NewsFetcher {
                   title: item.webTitle,
                   description: item.fields?.trailText || 'Read more...',
                   url: item.webUrl,
-                  image: item.fields?.thumbnail || '🍷',
+                  image: item.fields?.thumbnail || 'assets/logo.svg',
                   source: 'The Guardian',
                   pubDate: item.webPublicationDate,
                   category: this.detectCategory(item.webTitle)
@@ -226,7 +242,7 @@ class NewsFetcher {
                   title: a.title,
                   description: a.description || a.content || 'Read more...',
                   url: a.url,
-                  image: a.urlToImage || '🍷',
+                  image: a.urlToImage || 'assets/logo.svg',
                   source: a.source.name,
                   pubDate: a.publishedAt,
                   category: this.detectCategory(a.title)
@@ -267,7 +283,7 @@ class NewsFetcher {
                   title: story.title,
                   description: `Posted ${story.time ? new Date(story.time * 1000).toLocaleDateString() : 'recently'}`,
                   url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
-                  image: '📰',
+                  image: 'assets/logo.svg',
                   source: 'Hacker News',
                   pubDate: new Date(story.time * 1000).toISOString(),
                   category: 'business'
@@ -312,11 +328,11 @@ class NewsFetcher {
           items.forEach(item => {
             const title = item.querySelector('title')?.textContent || '';
             if (title.toLowerCase().match(/beverage|alcohol|beer|wine|spirit|drink|liquor/i)) {
-              const articleObj = {
+                const articleObj = {
                 title: title,
                 description: item.querySelector('description')?.textContent?.substring(0, 200) || 'Read more...',
                 url: item.querySelector('link')?.textContent || '#',
-                image: '🍷',
+                image: 'assets/logo.svg',
                 source: new URL(feedUrl).hostname,
                 pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
                 category: this.detectCategory(title)

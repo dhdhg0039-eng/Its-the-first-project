@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beverage Brain™ - Real-Time Beverage Industry News</title>
+    <title>Beverage Brain™ - Beverage Industry News</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍷</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 </head>
 <body>
     <!-- Header -->
     <header>
         <div class="header-content">
             <div>
-                <h1 class="logo">🍷 Beverage Brain™</h1>
-                <p style="margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.95;"><em>Every pour. Every brand. Beverage Brain — where the industry meets insight.</em></p>
+                <h1 class="logo"><img src="assets/logo.svg" alt="Beverage Brain logo" style="height:28px; vertical-align:middle"> Beverage Brain™</h1>
+                <p style="margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.95;">Industry news, brands, and trends — refined for professionals.</p>
             </div>
             <div class="header-controls">
                 <button id="toggle-sidebar" class="btn btn-icon" title="Toggle filters">Filters ▾</button>
-                <button id="refresh-btn" class="btn btn-icon" title="Manual refresh">🔄</button>
-                <a class="btn btn-ghost" href="mailto:kushalpatel1239@gmail.com?subject=Advertise%20with%20Beverage%20Brain" title="Advertise / Sponsor">💼 Advertise</a>
+                <button id="refresh-btn" class="btn btn-icon" title="Manual refresh">Refresh</button>
+                <a class="btn btn-ghost" href="mailto:kushalpatel1239@gmail.com?subject=Advertise%20with%20Beverage%20Brain" title="Advertise / Sponsor">Advertise</a>
             </div>
         </div>
         <div class="status-bar">
@@ -34,47 +35,47 @@
         <div class="layout">
             <!-- Sidebar Filters (hidden by default) -->
             <aside id="sidebar" class="sidebar hidden">
-                <h3>🔍 Search & Filter</h3>
+                <h3>Search & Filter</h3>
                 <input type="text" id="search" class="search-box" placeholder="Search news, brands, trends...">
 
                 <div class="filter-group">
-                    <h3>📂 Categories</h3>
+                    <h3>Categories</h3>
                     <label class="filter-item">
                         <input type="radio" name="category" value="all" data-category>
                         All News
                     </label>
                     <label class="filter-item">
                         <input type="radio" name="category" value="beer" data-category>
-                        🍺 Beer & Brewing
+                        Beer & Brewing
                     </label>
                     <label class="filter-item">
                         <input type="radio" name="category" value="wine" data-category>
-                        🍷 Wine & Vineyards
+                        Wine & Vineyards
                     </label>
                     <label class="filter-item">
                         <input type="radio" name="category" value="spirits" data-category checked>
-                        🥃 Spirits & Liquor
+                        Spirits & Liquor
                     </label>
                     <label class="filter-item">
                         <input type="radio" name="category" value="rtd" data-category>
-                        🥤 RTD & Seltzers
+                        RTD & Seltzers
                     </label>
                     <label class="filter-item">
                         <input type="radio" name="category" value="regulation" data-category>
-                        ⚖️ Regulations
+                        Regulations
                     </label>
                     <label class="filter-item">
                         <input type="radio" name="category" value="trend" data-category>
-                        📈 Trends & Market
+                        Trends & Market
                     </label>
                     <label class="filter-item">
                         <input type="radio" name="category" value="business" data-category>
-                        💼 Business & Deals
+                        Business & Deals
                     </label>
                 </div>
 
                 <div class="filter-group">
-                    <h3>🗺️ US States</h3>
+                    <h3>US States</h3>
                     <label class="filter-item">
                         <input type="radio" name="state" value="all" data-state checked>
                         National
@@ -102,7 +103,7 @@
                 </div>
 
                 <div class="filter-group">
-                    <h3>🏷️ Top Brands</h3>
+                    <h3>Top Brands</h3>
                     <div id="brand-cloud" class="brand-cloud">
                         <!-- Populated dynamically -->
                         <p style="font-size:0.9rem;color:#666;">Loading brands...</p>
@@ -116,13 +117,13 @@
             <!-- Main Content -->
             <div class="news-container">
                 <!-- Featured Hero -->
-                <section id="featured-hero" class="featured-hero hidden">
+                <section id="featured-hero" class="featured-hero hidden" aria-hidden="true">
                     <div class="featured-content">
-                        <div class="featured-image" id="featured-image">🍷</div>
+                        <div class="featured-image" id="featured-image"></div>
                         <div class="featured-copy">
                             <div class="featured-meta" id="featured-meta">Top Story</div>
-                            <h2 id="featured-title">Featured article title</h2>
-                            <p id="featured-desc">Short summary of the featured article to hook readers.</p>
+                            <h2 id="featured-title"></h2>
+                            <p id="featured-desc"></p>
                             <div class="featured-actions">
                                 <a id="featured-link" class="btn btn-primary" href="#" target="_blank">Read full story</a>
                                 <button id="featured-save" class="btn btn-secondary">Save</button>
@@ -151,11 +152,11 @@
 
                 <!-- Trending Brands -->
                 <div id="trending-panel" class="trending-panel">
-                    <h3>🔥 Trending Brands</h3>
+                    <h3>Trending Brands</h3>
                     <div id="trending-list" class="trending-list">Loading...</div>
                 </div>
                 <div class="news-header">
-                    <h1>📰 Latest News</h1>
+                    <h1>Latest News</h1>
                     <div class="view-controls">
                         <span class="article-count" id="article-count">0 Articles</span>
                     </div>
@@ -172,11 +173,11 @@
     </div>
 
     <!-- AI Chat Widget -->
-    <button id="chat-toggle" class="chat-toggle-btn">💬</button>
+    <button id="chat-toggle" class="chat-toggle-btn">Chat</button>
 
     <div id="chat-widget" class="chat-widget hidden">
         <div class="chat-header">
-            <h4>🤖 Beverage Brain AI</h4>
+            <h4>Beverage Brain AI</h4>
             <button id="chat-close" class="chat-close">&times;</button>
         </div>
         <div id="chat-messages" class="chat-messages"></div>
@@ -209,5 +210,13 @@
     <script src="news-fetcher.js"></script>
     <script src="ai-chat.js"></script>
     <script src="app.js"></script>
+        <script>
+            // Register service worker for PWA / offline support
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(() => console.log('Service worker registered'))
+                    .catch((e) => console.warn('Service worker failed', e));
+            }
+        </script>
 </body>
 </html>
