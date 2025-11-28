@@ -40,8 +40,41 @@ class NewsFetcher {
     }
   }
 
+  // Try to fetch authoritative articles from a backend API (if deployed).
+  async fetchFromBackend() {
+    try {
+      // `BACKEND_API` can be set on the page via a global, otherwise try same-origin /api
+      const base = (window && window.BACKEND_API) ? window.BACKEND_API.replace(/\/$/, '') : '';
+      const url = base ? `${base}/api/articles` : '/api/articles';
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const articles = data.articles || data;
+      if (!Array.isArray(articles) || articles.length === 0) return null;
+
+      // Ensure brand detection exists (backend may include brands already)
+      articles.forEach(a => {
+        if (!a.brands) a.brands = this.detectBrands((a.title || '') + ' ' + (a.description || ''));
+      });
+      // Update local cache and timestamp
+      this.articles = articles;
+      this.cache = articles;
+      localStorage.setItem('news_cache', JSON.stringify(articles));
+      localStorage.setItem('news_lastUpdate', new Date().toISOString());
+      return articles;
+    } catch (e) {
+      return null;
+    }
+  }
+
   async fetchAllNews() {
     try {
+      // First, try backend API (if deployed) to avoid CORS/rate limits and get authoritative feed
+      const fromBackend = await this.fetchFromBackend();
+      if (Array.isArray(fromBackend) && fromBackend.length) {
+        return fromBackend;
+      }
+
       const sources = [
         this.fetchFromGuardian(),
         this.fetchFromHackerNews(),
