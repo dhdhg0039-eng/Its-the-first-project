@@ -4,6 +4,18 @@ class NewsFetcher {
     this.articles = [];
     this.cache = JSON.parse(localStorage.getItem('news_cache') || '[]');
     this.lastUpdate = localStorage.getItem('news_lastUpdate') || null;
+    this.brands = []; // will be loaded from brands.json
+  }
+
+  async loadBrands() {
+    try {
+      const res = await fetch('brands.json');
+      if (!res.ok) return;
+      const list = await res.json();
+      if (Array.isArray(list)) this.brands = list;
+    } catch (e) {
+      console.warn('Could not load brands.json', e);
+    }
   }
 
   async fetchAllNews() {
@@ -33,7 +45,11 @@ class NewsFetcher {
         return true;
       });
 
-      this.articles = unique.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      // Keep only liquor/alcohol related articles (whitelist)
+      const liquorRegex = /(beer|wine|whiskey|bourbon|gin|vodka|rum|tequila|spirits|distillery|brewery|cocktail|mixology|sommelier|alcohol|liquor|rtd|seltzer|hard seltzer)/i;
+      this.articles = unique
+        .filter(a => liquorRegex.test((a.title || '') + ' ' + (a.description || '') + ' ' + (a.source || '')))
+        .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
       this.cache = this.articles;
       localStorage.setItem('news_cache', JSON.stringify(this.articles));
       localStorage.setItem('news_lastUpdate', new Date().toISOString());
@@ -47,14 +63,23 @@ class NewsFetcher {
 
   async fetchFromGuardian() {
     try {
+      // Focused liquor/alcohol keywords only (avoid broad food/beverage terms)
       const terms = [
-        'alcohol industry',
-        'beer market',
-        'wine production',
-        'spirits sales',
-        'beverage regulation',
-        'craft distillery',
-        'RTD drinks'
+        'alcohol',
+        'beer',
+        'wine',
+        'spirits',
+        'distillery',
+        'brewery',
+        'liquor',
+        'cocktail',
+        'rum',
+        'vodka',
+        'whiskey',
+        'bourbon',
+        'tequila',
+        'rtd',
+        'hard seltzer'
       ];
 
       const articles = [];
@@ -65,15 +90,19 @@ class NewsFetcher {
           if (response.ok) {
             const data = await response.json();
             if (data.response && data.response.results) {
-              articles.push(...data.response.results.map(item => ({
-                title: item.webTitle,
-                description: item.fields?.trailText || 'Read more...',
-                url: item.webUrl,
-                image: item.fields?.thumbnail || '🍷',
-                source: 'The Guardian',
-                pubDate: item.webPublicationDate,
-                category: this.detectCategory(item.webTitle)
-              })));
+              articles.push(...data.response.results.map(item => {
+                const obj = {
+                  title: item.webTitle,
+                  description: item.fields?.trailText || 'Read more...',
+                  url: item.webUrl,
+                  image: item.fields?.thumbnail || '🍷',
+                  source: 'The Guardian',
+                  pubDate: item.webPublicationDate,
+                  category: this.detectCategory(item.webTitle)
+                };
+                obj.brands = this.detectBrands(item.webTitle + ' ' + (obj.description || ''));
+                return obj;
+              }));
             }
           }
         } catch (e) {
@@ -88,15 +117,18 @@ class NewsFetcher {
 
   async fetchFromNewsAPI() {
     try {
+      // Narrow topics to alcohol/liquor related keywords
       const topics = [
-        'beverage',
         'alcohol',
         'beer',
         'wine',
         'spirits',
         'liquor',
         'brewery',
-        'distillery'
+        'distillery',
+        'cocktail',
+        'rtd',
+        'hard seltzer'
       ];
 
       const articles = [];
@@ -107,15 +139,19 @@ class NewsFetcher {
           if (response.ok) {
             const data = await response.json();
             if (data.articles) {
-              articles.push(...data.articles.map(a => ({
-                title: a.title,
-                description: a.description || a.content || 'Read more...',
-                url: a.url,
-                image: a.urlToImage || '🍷',
-                source: a.source.name,
-                pubDate: a.publishedAt,
-                category: this.detectCategory(a.title)
-              })));
+              articles.push(...data.articles.map(a => {
+                const obj = {
+                  title: a.title,
+                  description: a.description || a.content || 'Read more...',
+                  url: a.url,
+                  image: a.urlToImage || '🍷',
+                  source: a.source.name,
+                  pubDate: a.publishedAt,
+                  category: this.detectCategory(a.title)
+                };
+                obj.brands = this.detectBrands(a.title + ' ' + (obj.description || ''));
+                return obj;
+              }));
             }
           }
         } catch (e) {
@@ -141,16 +177,23 @@ class NewsFetcher {
           const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${storyIds[i]}.json`);
           if (storyRes.ok) {
             const story = await storyRes.json();
-            if (story.title && story.title.toLowerCase().includes('beverage|alcohol|beer|wine|spirit|drink'.split('|'))) {
-              articles.push({
-                title: story.title,
-                description: `Posted ${story.time ? new Date(story.time * 1000).toLocaleDateString() : 'recently'}`,
-                url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
-                image: '📰',
-                source: 'Hacker News',
-                pubDate: new Date(story.time * 1000).toISOString(),
-                category: 'business'
-              });
+            if (story.title) {
+              const titleLower = story.title.toLowerCase();
+              const hnRegex = /beer|wine|alcohol|spirit|whiskey|vodka|rum|tequila|distillery|brewery|cocktail|liquor|rtd|seltzer/i;
+              if (hnRegex.test(titleLower)) {
+                const hnObj = {
+                  title: story.title,
+                  description: `Posted ${story.time ? new Date(story.time * 1000).toLocaleDateString() : 'recently'}`,
+                  url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
+                  image: '📰',
+                  source: 'Hacker News',
+                  pubDate: new Date(story.time * 1000).toISOString(),
+                  category: 'business'
+                };
+                hnObj.brands = this.detectBrands(hnObj.title + ' ' + (hnObj.description || ''));
+                articles.push(hnObj);
+              }
+            }
             }
           }
         } catch (e) {
@@ -166,7 +209,12 @@ class NewsFetcher {
   async fetchFromRSSFeeds() {
     const feeds = [
       'https://feeds.bloomberg.com/markets/news.rss',
-      'https://www.cnbc.com/id/100003114/device/rss/rss.html'
+      'https://www.cnbc.com/id/100003114/device/rss/rss.html',
+      'https://www.thespiritsbusiness.com/feed/',
+      'https://www.thedrinksbusiness.com/feed/',
+      'https://www.liquor.com/feed/',
+      'https://vinepair.com/feed/',
+      'https://punchdrink.com/feed/'
     ];
 
     const articles = [];
@@ -182,7 +230,7 @@ class NewsFetcher {
           items.forEach(item => {
             const title = item.querySelector('title')?.textContent || '';
             if (title.toLowerCase().match(/beverage|alcohol|beer|wine|spirit|drink|liquor/i)) {
-              articles.push({
+              const articleObj = {
                 title: title,
                 description: item.querySelector('description')?.textContent?.substring(0, 200) || 'Read more...',
                 url: item.querySelector('link')?.textContent || '#',
@@ -190,7 +238,9 @@ class NewsFetcher {
                 source: new URL(feedUrl).hostname,
                 pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
                 category: this.detectCategory(title)
-              });
+              };
+              articleObj.brands = this.detectBrands(title + ' ' + (articleObj.description || ''));
+              articles.push(articleObj);
             }
           });
         }
@@ -210,6 +260,22 @@ class NewsFetcher {
     if (lower.includes('regul') || lower.includes('law') || lower.includes('tax')) return 'regulation';
     if (lower.includes('trend') || lower.includes('market') || lower.includes('grow')) return 'trend';
     return 'business';
+  }
+
+  detectBrands(text) {
+    if (!text) return [];
+    const found = [];
+    const lower = text.toLowerCase();
+    for (const b of this.brands) {
+      try {
+        if (lower.includes(b.toLowerCase())) {
+          if (!found.includes(b)) found.push(b);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return found;
   }
 
   detectState(text) {

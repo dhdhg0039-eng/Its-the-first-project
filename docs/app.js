@@ -179,11 +179,14 @@ class App {
     const loading = document.getElementById('news-loading');
     if (loading) loading.style.display = 'flex';
 
-    this.articles = await newsFetcher.fetchAllNews();
-    this.applyFilters();
+    try {
+      this.articles = await newsFetcher.fetchAllNews();
+      this.applyFilters();
+    } catch (e) {
+      console.error('Error loading news:', e);
+    }
 
     if (loading) loading.style.display = 'none';
-    this.updateStatus();
   }
 
   applyFilters() {
@@ -205,6 +208,9 @@ class App {
 
     this.filteredArticles = filtered;
     this.renderNews();
+    // hide loading spinner immediately
+    const loading = document.getElementById('news-loading');
+    if (loading) loading.style.display = 'none';
   }
 
   renderNews() {
@@ -335,11 +341,7 @@ class App {
   }
 
   updateStatus() {
-    const status = document.getElementById('update-status');
-    if (status) {
-      const now = new Date().toLocaleTimeString();
-      status.textContent = `Last updated: ${now}`;
-    }
+    // Status update removed - no longer showing timestamp
   }
 }
 

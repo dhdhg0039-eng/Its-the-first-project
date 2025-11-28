@@ -13,11 +13,12 @@
         <div class="header-content">
             <div>
                 <h1 class="logo">🍷 Beverage Brain™</h1>
-                <p style="margin: 0.3rem 0 0; font-size: 0.9rem; opacity: 0.9;">Real-Time Beverage Industry Intelligence | Team TwinFlame™</p>
+                <p style="margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.95;"><em>Every pour. Every brand. Beverage Brain — where the industry meets insight.</em></p>
             </div>
             <div class="header-controls">
-                <button id="refresh-btn" class="btn btn-primary">🔄 Refresh</button>
-                <button class="btn btn-secondary" onclick="location.reload()">⚙️ Settings</button>
+                <button id="toggle-sidebar" class="btn btn-icon" title="Toggle filters">⚙️</button>
+                <button id="refresh-btn" class="btn btn-icon" title="Manual refresh">🔄</button>
+                <a class="btn btn-ghost" href="mailto:kushalpatel1239@gmail.com?subject=Advertise%20with%20Beverage%20Brain" title="Advertise / Sponsor">💼 Advertise</a>
             </div>
         </div>
         <div class="status-bar">
@@ -25,22 +26,21 @@
                 <span class="live-dot"></span>
                 <span>Live Updates Every 30 Minutes</span>
             </div>
-            <span style="margin-left: 2rem;" id="update-status">Last updated: Just now</span>
         </div>
     </header>
 
     <!-- Main Container -->
     <div class="container">
         <div class="layout">
-            <!-- Sidebar Filters -->
-            <aside class="sidebar">
+            <!-- Sidebar Filters (hidden by default) -->
+            <aside id="sidebar" class="sidebar hidden">
                 <h3>🔍 Search & Filter</h3>
                 <input type="text" id="search" class="search-box" placeholder="Search news, brands, trends...">
 
                 <div class="filter-group">
                     <h3>📂 Categories</h3>
                     <label class="filter-item">
-                        <input type="radio" name="category" value="all" data-category checked>
+                        <input type="radio" name="category" value="all" data-category>
                         All News
                     </label>
                     <label class="filter-item">
@@ -52,7 +52,7 @@
                         🍷 Wine & Vineyards
                     </label>
                     <label class="filter-item">
-                        <input type="radio" name="category" value="spirits" data-category>
+                        <input type="radio" name="category" value="spirits" data-category checked>
                         🥃 Spirits & Liquor
                     </label>
                     <label class="filter-item">
@@ -100,7 +100,18 @@
                         Pennsylvania
                     </label>
                 </div>
+
+                <div class="filter-group">
+                    <h3>🏷️ Top Brands</h3>
+                    <div id="brand-cloud" class="brand-cloud">
+                        <!-- Populated dynamically -->
+                        <p style="font-size:0.9rem;color:#666;">Loading brands...</p>
+                    </div>
+                </div>
             </aside>
+
+            <!-- Overlay to close sidebar on mobile/when open -->
+            <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
 
             <!-- Main Content -->
             <div class="news-container">
@@ -135,6 +146,25 @@
             <button id="chat-send" class="chat-send">Send</button>
         </div>
     </div>
+
+        <!-- Press Release Modal -->
+        <div id="press-modal" class="modal hidden">
+            <div class="modal-content">
+                <button id="press-close" class="modal-close">&times;</button>
+                <h3>Submit Press Release</h3>
+                <form id="press-form">
+                    <input type="text" id="pr-name" placeholder="Your name" required>
+                    <input type="email" id="pr-email" placeholder="Email" required>
+                    <input type="text" id="pr-company" placeholder="Company/Brand">
+                    <input type="text" id="pr-subject" placeholder="Subject">
+                    <textarea id="pr-message" placeholder="Paste your press release or message here" rows="6"></textarea>
+                    <div style="display:flex;gap:0.6rem;justify-content:flex-end;margin-top:0.7rem;">
+                        <button type="button" id="press-send" class="btn btn-primary">Send via Email</button>
+                        <button type="button" id="press-cancel" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     <!-- Scripts -->
     <script src="news-fetcher.js"></script>

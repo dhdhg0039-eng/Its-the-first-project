@@ -3,7 +3,9 @@ class App {
   constructor() {
     this.articles = [];
     this.filteredArticles = [];
-    this.selectedCategory = 'all';
+    // default to spirits/liquor so users see liquor news immediately
+    this.selectedCategory = 'spirits';
+    this.selectedBrand = 'all';
     this.selectedState = 'all';
     this.searchQuery = '';
     this.updateInterval = null;
@@ -14,7 +16,22 @@ class App {
     console.log('🍷 Beverage Brain initializing...');
     
     this.setupEventListeners();
-    await this.loadNews();
+    // load brands first so detection works
+    if (typeof newsFetcher.loadBrands === 'function') await newsFetcher.loadBrands();
+
+    // Only fetch news if 30 minutes have passed since last update.
+    // Otherwise use cached articles to avoid fetching on every user refresh.
+    const last = localStorage.getItem('news_lastUpdate');
+    const now = Date.now();
+    const THIRTY_MIN = 30 * 60 * 1000;
+    if (!last || (now - new Date(last).getTime()) > THIRTY_MIN) {
+      await this.loadNews();
+    } else {
+      // load from cache and render immediately
+      this.articles = newsFetcher.cache || [];
+      this.applyFilters();
+      this.updateStatus();
+    }
     
     // Auto-refresh every 30 minutes
     this.updateInterval = setInterval(() => this.loadNews(), 30 * 60 * 1000);
@@ -23,6 +40,15 @@ class App {
   }
 
   setupEventListeners() {
+    // Sidebar toggle
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+      });
+    }
+
     // Category filters
     document.querySelectorAll('[data-category]').forEach(el => {
       el.addEventListener('change', (e) => {
@@ -37,6 +63,17 @@ class App {
         this.selectedState = e.target.value;
         this.applyFilters();
       });
+    });
+
+    // Brand cloud - delegated click handler
+    document.getElementById('brand-cloud')?.addEventListener('click', (e) => {
+      const tag = e.target.closest('[data-brand]');
+      if (!tag) return;
+      const brand = tag.getAttribute('data-brand');
+      if (!brand) return;
+      // toggle
+      this.selectedBrand = this.selectedBrand === brand ? 'all' : brand;
+      this.applyFilters();
     });
 
     // Search
@@ -84,17 +121,72 @@ class App {
         if (e.key === 'Enter') this.sendChatMessage();
       });
     }
+
+    // Press release modal handlers
+    const pressModal = document.getElementById('press-modal');
+    const pressSend = document.getElementById('press-send');
+    const pressClose = document.getElementById('press-close');
+    const pressCancel = document.getElementById('press-cancel');
+
+    document.querySelectorAll('.btn-ghost').forEach(b => {
+      b.addEventListener('click', (e) => {
+        // Advertise button opens press release modal
+        if (b.getAttribute('href')?.startsWith('mailto:')) {
+          // also show modal
+          if (pressModal) pressModal.classList.remove('hidden');
+        }
+      });
+    });
+
+    pressClose?.addEventListener('click', () => pressModal.classList.add('hidden'));
+    pressCancel?.addEventListener('click', () => pressModal.classList.add('hidden'));
+
+    pressSend?.addEventListener('click', () => {
+      const name = document.getElementById('pr-name')?.value || '';
+      const email = document.getElementById('pr-email')?.value || '';
+      const company = document.getElementById('pr-company')?.value || '';
+      const subject = document.getElementById('pr-subject')?.value || 'Press Release';
+      const message = document.getElementById('pr-message')?.value || '';
+
+      const body = `Name: ${name}%0D%0AEmail: ${email}%0D%0ACompany: ${company}%0D%0A%0D%0A${encodeURIComponent(message)}`;
+      const mailto = `mailto:kushalpatel1239@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+      window.location.href = mailto;
+      if (pressModal) pressModal.classList.add('hidden');
+    });
+
+    // Filter toggle: show/hide sidebar and overlay
+    const filterToggle = document.getElementById('filter-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    filterToggle?.addEventListener('click', () => {
+      if (!sidebar) return;
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      if (isCollapsed) {
+        sidebar.classList.remove('collapsed');
+        overlay?.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('collapsed');
+        overlay?.classList.add('hidden');
+      }
+    });
+    overlay?.addEventListener('click', () => {
+      sidebar?.classList.add('collapsed');
+      overlay.classList.add('hidden');
+    });
   }
 
   async loadNews() {
     const loading = document.getElementById('news-loading');
     if (loading) loading.style.display = 'flex';
 
-    this.articles = await newsFetcher.fetchAllNews();
-    this.applyFilters();
+    try {
+      this.articles = await newsFetcher.fetchAllNews();
+      this.applyFilters();
+    } catch (e) {
+      console.error('Error loading news:', e);
+    }
 
     if (loading) loading.style.display = 'none';
-    this.updateStatus();
   }
 
   applyFilters() {
@@ -102,6 +194,11 @@ class App {
 
     // Category filter
     filtered = newsFetcher.filterByCategory(filtered, this.selectedCategory);
+
+    // Brand filter
+    if (this.selectedBrand && this.selectedBrand !== 'all') {
+      filtered = filtered.filter(a => Array.isArray(a.brands) && a.brands.includes(this.selectedBrand));
+    }
 
     // State filter
     filtered = newsFetcher.filterByState(filtered, this.selectedState);
@@ -111,11 +208,17 @@ class App {
 
     this.filteredArticles = filtered;
     this.renderNews();
+    // hide loading spinner immediately
+    const loading = document.getElementById('news-loading');
+    if (loading) loading.style.display = 'none';
   }
 
   renderNews() {
     const container = document.getElementById('news-grid');
     if (!container) return;
+
+    // Render brand cloud summary
+    this.renderBrandCloud();
 
     if (this.filteredArticles.length === 0) {
       container.innerHTML = `
@@ -170,6 +273,31 @@ class App {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
+  renderBrandCloud() {
+    const cloud = document.getElementById('brand-cloud');
+    if (!cloud) return;
+
+    // Collect brand counts from current articles
+    const counts = {};
+    for (const a of this.articles) {
+      if (!Array.isArray(a.brands)) continue;
+      for (const b of a.brands) {
+        counts[b] = (counts[b] || 0) + 1;
+      }
+    }
+
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (entries.length === 0) {
+      cloud.innerHTML = '<p style="font-size:0.9rem;color:#666;">No brands identified yet</p>';
+      return;
+    }
+
+    cloud.innerHTML = entries.slice(0, 40).map(([brand, count]) => {
+      const cls = this.selectedBrand === brand ? 'brand-tag active' : 'brand-tag';
+      return `<button data-brand="${brand}" class="${cls}" title="Filter by ${brand}">${brand} <span class="badge">${count}</span></button>`;
+    }).join(' ');
+  }
+
   toggleBookmark(url, btn) {
     const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
     const index = bookmarks.indexOf(url);
@@ -213,11 +341,7 @@ class App {
   }
 
   updateStatus() {
-    const status = document.getElementById('update-status');
-    if (status) {
-      const now = new Date().toLocaleTimeString();
-      status.textContent = `Last updated: ${now}`;
-    }
+    // Status update removed - no longer showing timestamp
   }
 }
 
