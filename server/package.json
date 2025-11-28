@@ -1,0 +1,16 @@
+{
+  "name": "beverage-brain-server",
+  "version": "0.1.0",
+  "description": "Simple crawler + API for Beverage Brain",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "fetch": "node fetcher.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7",
+    "xml2js": "^0.4.23",
+    "cors": "^2.8.5"
+  }
+}
