@@ -223,6 +223,9 @@ class App {
     // Render brand cloud summary
     this.renderBrandCloud();
 
+    // Render featured hero (pick top article)
+    this.renderFeatured();
+
     if (this.filteredArticles.length === 0) {
       container.innerHTML = `
         <div class="no-results">
@@ -261,6 +264,30 @@ class App {
 
     const count = document.getElementById('article-count');
     if (count) count.textContent = `${this.filteredArticles.length} Articles`;
+  }
+
+  renderFeatured() {
+    const hero = document.getElementById('featured-hero');
+    const img = document.getElementById('featured-image');
+    const title = document.getElementById('featured-title');
+    const desc = document.getElementById('featured-desc');
+    const link = document.getElementById('featured-link');
+    const meta = document.getElementById('featured-meta');
+
+    if (!hero || !title) return;
+
+    const article = this.filteredArticles && this.filteredArticles.length ? this.filteredArticles[0] : (this.articles[0] || null);
+    if (!article) {
+      hero.classList.add('hidden');
+      return;
+    }
+
+    hero.classList.remove('hidden');
+    if (img) img.innerHTML = typeof article.image === 'string' && article.image.startsWith('http') ? `<img src="${article.image}" alt="${article.title}">` : (article.image || '🍷');
+    if (meta) meta.textContent = (article.source || 'Source');
+    title.textContent = article.title || 'Featured article';
+    desc.textContent = (article.description || '').replace(/<[^>]+>/g, '').substring(0, 260);
+    if (link) link.href = article.url || '#';
   }
 
   formatDate(dateString) {
