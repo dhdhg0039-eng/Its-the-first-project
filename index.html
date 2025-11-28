@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beverage Brain™ - Premium Beverage Industry News</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍷</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="logo">🍷 Beverage Brain™</h1>
+                <p class="tagline">Real Beverage Industry Intelligence • Team TwinFlame™</p>
+            </div>
+            <div class="header-controls">
+                <button id="refreshBtn" class="btn btn-primary" title="Refresh news data">🔄 Refresh Now</button>
+                <button id="notifyBtn" class="btn btn-secondary" title="Enable notifications">🔔 Notifications</button>
+                <button id="bookmarksBtn" class="btn btn-secondary" title="View saved articles">📌 Bookmarks</button>
+            </div>
+        </div>
+        <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span>Data Live ✓ from Real APIs</span>
+            <span class="last-update">Last updated: <span id="lastUpdateTime">Just now</span></span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Sidebar - Search & Filters -->
+        <aside class="sidebar">
+            <div class="search-section">
+                <h3>🔍 Search & Filter</h3>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="Search news (keywords, brands, states)..."
+                    autocomplete="off"
+                >
+                <div class="search-suggestions" id="searchSuggestions"></div>
+            </div>
+
+            <div class="filter-section">
+                <h3>📂 Categories</h3>
+                <div class="category-filters">
+                    <label><input type="checkbox" class="category-filter" value="all" checked> All News</label>
+                    <label><input type="checkbox" class="category-filter" value="beer"> 🍺 Beer</label>
+                    <label><input type="checkbox" class="category-filter" value="wine"> 🍷 Wine</label>
+                    <label><input type="checkbox" class="category-filter" value="spirits"> 🥃 Spirits/Liquor</label>
+                    <label><input type="checkbox" class="category-filter" value="rtd"> 🥤 RTD/Premix</label>
+                    <label><input type="checkbox" class="category-filter" value="regulations"> ⚖️ Regulations</label>
+                    <label><input type="checkbox" class="category-filter" value="trends"> 📈 Trends</label>
+                    <label><input type="checkbox" class="category-filter" value="business"> 💼 Business</label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>🗺️ USA States</h3>
+                <div class="state-filters-container">
+                    <div class="state-filters" id="stateFilters">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>🌍 Regions</h3>
+                <div class="region-filters">
+                    <label><input type="checkbox" class="region-filter" value="usa" checked> United States</label>
+                    <label><input type="checkbox" class="region-filter" value="international"> International</label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>⏱️ Time Range</h3>
+                <select id="timeRange" class="select-input">
+                    <option value="24">Last 24 Hours</option>
+                    <option value="7" selected>Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                </select>
+            </div>
+
+            <button id="clearFiltersBtn" class="btn btn-secondary btn-full">Clear All Filters</button>
+        </aside>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- AI Chat Panel -->
+            <section class="chat-panel">
+                <div class="chat-header">
+                    <h3>🤖 AI Assistant</h3>
+                    <button id="chatToggle" class="btn btn-small">−</button>
+                </div>
+                <div class="chat-content" id="chatContent">
+                    <div class="chat-message bot-message">
+                        <p>Hello! I'm your Beverage Brain™ AI Assistant. Ask me about beverage industry trends, regulations, business insights, or anything related to alcohol/beverage news!</p>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        class="chat-input" 
+                        placeholder="Ask about beverages, trends, regulations..."
+                        autocomplete="off"
+                    >
+                    <button id="chatSendBtn" class="btn btn-small">Send</button>
+                </div>
+            </section>
+
+            <!-- News Feed -->
+            <section class="news-feed">
+                <div class="feed-header">
+                    <h2>📰 Beverage Industry News Feed</h2>
+                    <div class="feed-stats">
+                        <span id="newsCount">0 articles</span>
+                        <select id="sortBy" class="select-input">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="relevance">Most Relevant</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="newsFeed" class="news-grid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading real beverage news...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sponsor Slot -->
+            <section class="sponsor-section">
+                <h3>📢 Partner with Beverage Brain™</h3>
+                <div class="sponsor-content">
+                    <p>Reach beverage industry professionals and business owners.</p>
+                    <p><strong>Contact:</strong> <a href="mailto:kushalpatel1239@gmail.com">kushalpatel1239@gmail.com</a></p>
+                    <p style="font-size: 0.9em; color: #666;">Owned by Team TwinFlame™</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Bookmarks Modal -->
+    <div id="bookmarksModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📌 Saved Articles</h2>
+                <button class="modal-close" id="closeBookmarks">&times;</button>
+            </div>
+            <div id="bookmarksList" class="bookmarks-list">
+                <p>No saved articles yet. Bookmark articles to save them here!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="ai.js"></script>
+    <script src="ui.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
