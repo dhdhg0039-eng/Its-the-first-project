@@ -4,6 +4,10 @@ class NewsFetcher {
     this.articles = [];
     this.cache = JSON.parse(localStorage.getItem('news_cache') || '[]');
     this.lastUpdate = localStorage.getItem('news_lastUpdate') || null;
+    // Common brands to detect in articles (expandable)
+    this.brands = [
+      "Tito's", 'Titos', 'Tito', 'Fireball', 'High Noon', 'Smirnoff', 'Jack Daniel', 'Jack Daniels', 'Johnnie Walker', 'Jameson', 'Absolut', 'Bacardi', 'Captain Morgan', 'Grey Goose', 'Jim Beam', "Maker's Mark", 'Crown Royal', 'Jose Cuervo', 'Don Julio', 'Patrón', 'Modelo', 'Corona', 'Heineken', 'Budweiser', 'Coors', 'Samuel Adams', 'Lagunitas', 'Stone', 'Seltzer', 'White Claw', 'Truly'
+    ];
   }
 
   async fetchAllNews() {
@@ -78,15 +82,19 @@ class NewsFetcher {
           if (response.ok) {
             const data = await response.json();
             if (data.response && data.response.results) {
-              articles.push(...data.response.results.map(item => ({
-                title: item.webTitle,
-                description: item.fields?.trailText || 'Read more...',
-                url: item.webUrl,
-                image: item.fields?.thumbnail || '🍷',
-                source: 'The Guardian',
-                pubDate: item.webPublicationDate,
-                category: this.detectCategory(item.webTitle)
-              })));
+              articles.push(...data.response.results.map(item => {
+                const obj = {
+                  title: item.webTitle,
+                  description: item.fields?.trailText || 'Read more...',
+                  url: item.webUrl,
+                  image: item.fields?.thumbnail || '🍷',
+                  source: 'The Guardian',
+                  pubDate: item.webPublicationDate,
+                  category: this.detectCategory(item.webTitle)
+                };
+                obj.brands = this.detectBrands(item.webTitle + ' ' + (obj.description || ''));
+                return obj;
+              }));
             }
           }
         } catch (e) {
@@ -123,15 +131,19 @@ class NewsFetcher {
           if (response.ok) {
             const data = await response.json();
             if (data.articles) {
-              articles.push(...data.articles.map(a => ({
-                title: a.title,
-                description: a.description || a.content || 'Read more...',
-                url: a.url,
-                image: a.urlToImage || '🍷',
-                source: a.source.name,
-                pubDate: a.publishedAt,
-                category: this.detectCategory(a.title)
-              })));
+              articles.push(...data.articles.map(a => {
+                const obj = {
+                  title: a.title,
+                  description: a.description || a.content || 'Read more...',
+                  url: a.url,
+                  image: a.urlToImage || '🍷',
+                  source: a.source.name,
+                  pubDate: a.publishedAt,
+                  category: this.detectCategory(a.title)
+                };
+                obj.brands = this.detectBrands(a.title + ' ' + (obj.description || ''));
+                return obj;
+              }));
             }
           }
         } catch (e) {
@@ -161,7 +173,7 @@ class NewsFetcher {
               const titleLower = story.title.toLowerCase();
               const hnRegex = /beer|wine|alcohol|spirit|whiskey|vodka|rum|tequila|distillery|brewery|cocktail|liquor|rtd|seltzer/i;
               if (hnRegex.test(titleLower)) {
-                articles.push({
+                const hnObj = {
                   title: story.title,
                   description: `Posted ${story.time ? new Date(story.time * 1000).toLocaleDateString() : 'recently'}`,
                   url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
@@ -169,7 +181,9 @@ class NewsFetcher {
                   source: 'Hacker News',
                   pubDate: new Date(story.time * 1000).toISOString(),
                   category: 'business'
-                });
+                };
+                hnObj.brands = this.detectBrands(hnObj.title + ' ' + (hnObj.description || ''));
+                articles.push(hnObj);
               }
             }
             }
@@ -187,7 +201,9 @@ class NewsFetcher {
   async fetchFromRSSFeeds() {
     const feeds = [
       'https://feeds.bloomberg.com/markets/news.rss',
-      'https://www.cnbc.com/id/100003114/device/rss/rss.html'
+      'https://www.cnbc.com/id/100003114/device/rss/rss.html',
+      'https://www.thespiritsbusiness.com/feed/',
+      'https://www.thedrinksbusiness.com/feed/'
     ];
 
     const articles = [];
@@ -203,7 +219,7 @@ class NewsFetcher {
           items.forEach(item => {
             const title = item.querySelector('title')?.textContent || '';
             if (title.toLowerCase().match(/beverage|alcohol|beer|wine|spirit|drink|liquor/i)) {
-              articles.push({
+              const articleObj = {
                 title: title,
                 description: item.querySelector('description')?.textContent?.substring(0, 200) || 'Read more...',
                 url: item.querySelector('link')?.textContent || '#',
@@ -211,7 +227,9 @@ class NewsFetcher {
                 source: new URL(feedUrl).hostname,
                 pubDate: item.querySelector('pubDate')?.textContent || new Date().toISOString(),
                 category: this.detectCategory(title)
-              });
+              };
+              articleObj.brands = this.detectBrands(title + ' ' + (articleObj.description || ''));
+              articles.push(articleObj);
             }
           });
         }
@@ -231,6 +249,22 @@ class NewsFetcher {
     if (lower.includes('regul') || lower.includes('law') || lower.includes('tax')) return 'regulation';
     if (lower.includes('trend') || lower.includes('market') || lower.includes('grow')) return 'trend';
     return 'business';
+  }
+
+  detectBrands(text) {
+    if (!text) return [];
+    const found = [];
+    const lower = text.toLowerCase();
+    for (const b of this.brands) {
+      try {
+        if (lower.includes(b.toLowerCase())) {
+          if (!found.includes(b)) found.push(b);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return found;
   }
 
   detectState(text) {

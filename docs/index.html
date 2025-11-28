@@ -17,6 +17,7 @@
             </div>
             <div class="header-controls">
                 <button id="refresh-btn" class="btn btn-primary">🔄 Refresh</button>
+                <a class="btn btn-ghost" href="mailto:kushalpatel1239@gmail.com?subject=Advertise%20with%20Beverage%20Brain" title="Advertise / Sponsor">💼 Advertise</a>
                 <button class="btn btn-secondary" onclick="location.reload()">⚙️ Settings</button>
             </div>
         </div>
@@ -99,6 +100,14 @@
                         <input type="radio" name="state" value="Pennsylvania" data-state>
                         Pennsylvania
                     </label>
+                </div>
+
+                <div class="filter-group">
+                    <h3>🏷️ Top Brands</h3>
+                    <div id="brand-cloud" class="brand-cloud">
+                        <!-- Populated dynamically -->
+                        <p style="font-size:0.9rem;color:#666;">Loading brands...</p>
+                    </div>
                 </div>
             </aside>
 

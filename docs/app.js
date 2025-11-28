@@ -5,6 +5,7 @@ class App {
     this.filteredArticles = [];
     // default to spirits/liquor so users see liquor news immediately
     this.selectedCategory = 'spirits';
+    this.selectedBrand = 'all';
     this.selectedState = 'all';
     this.searchQuery = '';
     this.updateInterval = null;
@@ -38,6 +39,17 @@ class App {
         this.selectedState = e.target.value;
         this.applyFilters();
       });
+    });
+
+    // Brand cloud - delegated click handler
+    document.getElementById('brand-cloud')?.addEventListener('click', (e) => {
+      const tag = e.target.closest('[data-brand]');
+      if (!tag) return;
+      const brand = tag.getAttribute('data-brand');
+      if (!brand) return;
+      // toggle
+      this.selectedBrand = this.selectedBrand === brand ? 'all' : brand;
+      this.applyFilters();
     });
 
     // Search
@@ -104,6 +116,11 @@ class App {
     // Category filter
     filtered = newsFetcher.filterByCategory(filtered, this.selectedCategory);
 
+    // Brand filter
+    if (this.selectedBrand && this.selectedBrand !== 'all') {
+      filtered = filtered.filter(a => Array.isArray(a.brands) && a.brands.includes(this.selectedBrand));
+    }
+
     // State filter
     filtered = newsFetcher.filterByState(filtered, this.selectedState);
 
@@ -117,6 +134,9 @@ class App {
   renderNews() {
     const container = document.getElementById('news-grid');
     if (!container) return;
+
+    // Render brand cloud summary
+    this.renderBrandCloud();
 
     if (this.filteredArticles.length === 0) {
       container.innerHTML = `
@@ -169,6 +189,31 @@ class App {
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  renderBrandCloud() {
+    const cloud = document.getElementById('brand-cloud');
+    if (!cloud) return;
+
+    // Collect brand counts from current articles
+    const counts = {};
+    for (const a of this.articles) {
+      if (!Array.isArray(a.brands)) continue;
+      for (const b of a.brands) {
+        counts[b] = (counts[b] || 0) + 1;
+      }
+    }
+
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (entries.length === 0) {
+      cloud.innerHTML = '<p style="font-size:0.9rem;color:#666;">No brands identified yet</p>';
+      return;
+    }
+
+    cloud.innerHTML = entries.slice(0, 40).map(([brand, count]) => {
+      const cls = this.selectedBrand === brand ? 'brand-tag active' : 'brand-tag';
+      return `<button data-brand="${brand}" class="${cls}" title="Filter by ${brand}">${brand} <span class="badge">${count}</span></button>`;
+    }).join(' ');
   }
 
   toggleBookmark(url, btn) {

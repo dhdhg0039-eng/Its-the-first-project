@@ -148,6 +148,38 @@ header {
   margin-bottom: 1.5rem;
 }
 
+.brand-cloud {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.brand-tag {
+  background: #f1f3f5;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.brand-tag.active {
+  background: var(--secondary);
+  color: white;
+  border-color: rgba(0,0,0,0.05);
+}
+
+.brand-tag .badge {
+  background: rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 0 6px;
+  margin-left: 6px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
 .filter-item {
   display: flex;
   align-items: center;
