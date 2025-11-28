@@ -18,7 +18,20 @@ class App {
     this.setupEventListeners();
     // load brands first so detection works
     if (typeof newsFetcher.loadBrands === 'function') await newsFetcher.loadBrands();
-    await this.loadNews();
+
+    // Only fetch news if 30 minutes have passed since last update.
+    // Otherwise use cached articles to avoid fetching on every user refresh.
+    const last = localStorage.getItem('news_lastUpdate');
+    const now = Date.now();
+    const THIRTY_MIN = 30 * 60 * 1000;
+    if (!last || (now - new Date(last).getTime()) > THIRTY_MIN) {
+      await this.loadNews();
+    } else {
+      // load from cache and render immediately
+      this.articles = newsFetcher.cache || [];
+      this.applyFilters();
+      this.updateStatus();
+    }
     
     // Auto-refresh every 30 minutes
     this.updateInterval = setInterval(() => this.loadNews(), 30 * 60 * 1000);
@@ -27,6 +40,15 @@ class App {
   }
 
   setupEventListeners() {
+    // Sidebar toggle
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+      });
+    }
+
     // Category filters
     document.querySelectorAll('[data-category]').forEach(el => {
       el.addEventListener('change', (e) => {
@@ -130,6 +152,26 @@ class App {
       const mailto = `mailto:kushalpatel1239@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
       window.location.href = mailto;
       if (pressModal) pressModal.classList.add('hidden');
+    });
+
+    // Filter toggle: show/hide sidebar and overlay
+    const filterToggle = document.getElementById('filter-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    filterToggle?.addEventListener('click', () => {
+      if (!sidebar) return;
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      if (isCollapsed) {
+        sidebar.classList.remove('collapsed');
+        overlay?.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('collapsed');
+        overlay?.classList.add('hidden');
+      }
+    });
+    overlay?.addEventListener('click', () => {
+      sidebar?.classList.add('collapsed');
+      overlay.classList.add('hidden');
     });
   }
 

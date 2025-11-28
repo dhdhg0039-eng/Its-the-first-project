@@ -16,9 +16,9 @@
                 <p style="margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.95;"><em>Every pour. Every brand. Beverage Brain — where the industry meets insight.</em></p>
             </div>
             <div class="header-controls">
-                <button id="refresh-btn" class="btn btn-primary">🔄 Refresh</button>
+                <button id="toggle-sidebar" class="btn btn-icon" title="Toggle filters">⚙️</button>
+                <button id="refresh-btn" class="btn btn-icon" title="Manual refresh">🔄</button>
                 <a class="btn btn-ghost" href="mailto:kushalpatel1239@gmail.com?subject=Advertise%20with%20Beverage%20Brain" title="Advertise / Sponsor">💼 Advertise</a>
-                <button class="btn btn-secondary" onclick="location.reload()">⚙️ Settings</button>
             </div>
         </div>
         <div class="status-bar">
@@ -33,8 +33,8 @@
     <!-- Main Container -->
     <div class="container">
         <div class="layout">
-            <!-- Sidebar Filters -->
-            <aside class="sidebar">
+            <!-- Sidebar Filters (hidden by default) -->
+            <aside id="sidebar" class="sidebar hidden">
                 <h3>🔍 Search & Filter</h3>
                 <input type="text" id="search" class="search-box" placeholder="Search news, brands, trends...">
 
@@ -110,6 +110,9 @@
                     </div>
                 </div>
             </aside>
+
+            <!-- Overlay to close sidebar on mobile/when open -->
+            <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
 
             <!-- Main Content -->
             <div class="news-container">
