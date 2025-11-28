@@ -33,7 +33,11 @@ class NewsFetcher {
         return true;
       });
 
-      this.articles = unique.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      // Keep only liquor/alcohol related articles (whitelist)
+      const liquorRegex = /(beer|wine|whiskey|bourbon|gin|vodka|rum|tequila|spirits|distillery|brewery|cocktail|mixology|sommelier|alcohol|liquor|rtd|seltzer|hard seltzer)/i;
+      this.articles = unique
+        .filter(a => liquorRegex.test((a.title || '') + ' ' + (a.description || '') + ' ' + (a.source || '')))
+        .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
       this.cache = this.articles;
       localStorage.setItem('news_cache', JSON.stringify(this.articles));
       localStorage.setItem('news_lastUpdate', new Date().toISOString());
@@ -47,14 +51,23 @@ class NewsFetcher {
 
   async fetchFromGuardian() {
     try {
+      // Focused liquor/alcohol keywords only (avoid broad food/beverage terms)
       const terms = [
-        'alcohol industry',
-        'beer market',
-        'wine production',
-        'spirits sales',
-        'beverage regulation',
-        'craft distillery',
-        'RTD drinks'
+        'alcohol',
+        'beer',
+        'wine',
+        'spirits',
+        'distillery',
+        'brewery',
+        'liquor',
+        'cocktail',
+        'rum',
+        'vodka',
+        'whiskey',
+        'bourbon',
+        'tequila',
+        'rtd',
+        'hard seltzer'
       ];
 
       const articles = [];
@@ -88,15 +101,18 @@ class NewsFetcher {
 
   async fetchFromNewsAPI() {
     try {
+      // Narrow topics to alcohol/liquor related keywords
       const topics = [
-        'beverage',
         'alcohol',
         'beer',
         'wine',
         'spirits',
         'liquor',
         'brewery',
-        'distillery'
+        'distillery',
+        'cocktail',
+        'rtd',
+        'hard seltzer'
       ];
 
       const articles = [];
@@ -141,16 +157,21 @@ class NewsFetcher {
           const storyRes = await fetch(`https://hacker-news.firebaseio.com/v0/item/${storyIds[i]}.json`);
           if (storyRes.ok) {
             const story = await storyRes.json();
-            if (story.title && story.title.toLowerCase().includes('beverage|alcohol|beer|wine|spirit|drink'.split('|'))) {
-              articles.push({
-                title: story.title,
-                description: `Posted ${story.time ? new Date(story.time * 1000).toLocaleDateString() : 'recently'}`,
-                url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
-                image: '📰',
-                source: 'Hacker News',
-                pubDate: new Date(story.time * 1000).toISOString(),
-                category: 'business'
-              });
+            if (story.title) {
+              const titleLower = story.title.toLowerCase();
+              const hnRegex = /beer|wine|alcohol|spirit|whiskey|vodka|rum|tequila|distillery|brewery|cocktail|liquor|rtd|seltzer/i;
+              if (hnRegex.test(titleLower)) {
+                articles.push({
+                  title: story.title,
+                  description: `Posted ${story.time ? new Date(story.time * 1000).toLocaleDateString() : 'recently'}`,
+                  url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
+                  image: '📰',
+                  source: 'Hacker News',
+                  pubDate: new Date(story.time * 1000).toISOString(),
+                  category: 'business'
+                });
+              }
+            }
             }
           }
         } catch (e) {

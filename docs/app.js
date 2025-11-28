@@ -3,7 +3,8 @@ class App {
   constructor() {
     this.articles = [];
     this.filteredArticles = [];
-    this.selectedCategory = 'all';
+    // default to spirits/liquor so users see liquor news immediately
+    this.selectedCategory = 'spirits';
     this.selectedState = 'all';
     this.searchQuery = '';
     this.updateInterval = null;

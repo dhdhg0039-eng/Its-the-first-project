@@ -26,11 +26,11 @@ body {
 header {
   background: linear-gradient(135deg, var(--primary) 0%, #252b48 100%);
   color: white;
-  padding: 1rem 2rem;
+  padding: 0.6rem 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
 .header-content {
@@ -43,9 +43,9 @@ header {
 }
 
 .logo {
-  font-size: 1.8rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
 }
 
 .header-controls {
@@ -87,8 +87,8 @@ header {
 
 .status-bar {
   text-align: center;
-  margin-top: 0.8rem;
-  font-size: 0.9rem;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
   opacity: 0.9;
 }
 
@@ -133,7 +133,7 @@ header {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   height: fit-content;
   position: sticky;
-  top: 100px;
+  top: 80px;
 }
 
 .sidebar h3 {
