@@ -16,6 +16,8 @@ class App {
     console.log('🍷 Beverage Brain initializing...');
     
     this.setupEventListeners();
+    // load brands first so detection works
+    if (typeof newsFetcher.loadBrands === 'function') await newsFetcher.loadBrands();
     await this.loadNews();
     
     // Auto-refresh every 30 minutes
@@ -97,6 +99,38 @@ class App {
         if (e.key === 'Enter') this.sendChatMessage();
       });
     }
+
+    // Press release modal handlers
+    const pressModal = document.getElementById('press-modal');
+    const pressSend = document.getElementById('press-send');
+    const pressClose = document.getElementById('press-close');
+    const pressCancel = document.getElementById('press-cancel');
+
+    document.querySelectorAll('.btn-ghost').forEach(b => {
+      b.addEventListener('click', (e) => {
+        // Advertise button opens press release modal
+        if (b.getAttribute('href')?.startsWith('mailto:')) {
+          // also show modal
+          if (pressModal) pressModal.classList.remove('hidden');
+        }
+      });
+    });
+
+    pressClose?.addEventListener('click', () => pressModal.classList.add('hidden'));
+    pressCancel?.addEventListener('click', () => pressModal.classList.add('hidden'));
+
+    pressSend?.addEventListener('click', () => {
+      const name = document.getElementById('pr-name')?.value || '';
+      const email = document.getElementById('pr-email')?.value || '';
+      const company = document.getElementById('pr-company')?.value || '';
+      const subject = document.getElementById('pr-subject')?.value || 'Press Release';
+      const message = document.getElementById('pr-message')?.value || '';
+
+      const body = `Name: ${name}%0D%0AEmail: ${email}%0D%0ACompany: ${company}%0D%0A%0D%0A${encodeURIComponent(message)}`;
+      const mailto = `mailto:kushalpatel1239@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+      window.location.href = mailto;
+      if (pressModal) pressModal.classList.add('hidden');
+    });
   }
 
   async loadNews() {

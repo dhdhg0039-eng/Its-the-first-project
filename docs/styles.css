@@ -605,6 +605,44 @@ header {
   box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
 
+/* Modal (press release) */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.45);
+  z-index: 2000;
+}
+
+.modal.hidden { display: none; }
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 1.2rem;
+  width: 600px;
+  max-width: 95%;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.2);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  float: right;
+  cursor: pointer;
+}
+
+.modal-content input, .modal-content textarea {
+  width: 100%;
+  padding: 0.7rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1024px) {
   .layout {

@@ -4,10 +4,18 @@ class NewsFetcher {
     this.articles = [];
     this.cache = JSON.parse(localStorage.getItem('news_cache') || '[]');
     this.lastUpdate = localStorage.getItem('news_lastUpdate') || null;
-    // Common brands to detect in articles (expandable)
-    this.brands = [
-      "Tito's", 'Titos', 'Tito', 'Fireball', 'High Noon', 'Smirnoff', 'Jack Daniel', 'Jack Daniels', 'Johnnie Walker', 'Jameson', 'Absolut', 'Bacardi', 'Captain Morgan', 'Grey Goose', 'Jim Beam', "Maker's Mark", 'Crown Royal', 'Jose Cuervo', 'Don Julio', 'Patrón', 'Modelo', 'Corona', 'Heineken', 'Budweiser', 'Coors', 'Samuel Adams', 'Lagunitas', 'Stone', 'Seltzer', 'White Claw', 'Truly'
-    ];
+    this.brands = []; // will be loaded from brands.json
+  }
+
+  async loadBrands() {
+    try {
+      const res = await fetch('brands.json');
+      if (!res.ok) return;
+      const list = await res.json();
+      if (Array.isArray(list)) this.brands = list;
+    } catch (e) {
+      console.warn('Could not load brands.json', e);
+    }
   }
 
   async fetchAllNews() {
@@ -203,7 +211,10 @@ class NewsFetcher {
       'https://feeds.bloomberg.com/markets/news.rss',
       'https://www.cnbc.com/id/100003114/device/rss/rss.html',
       'https://www.thespiritsbusiness.com/feed/',
-      'https://www.thedrinksbusiness.com/feed/'
+      'https://www.thedrinksbusiness.com/feed/',
+      'https://www.liquor.com/feed/',
+      'https://vinepair.com/feed/',
+      'https://punchdrink.com/feed/'
     ];
 
     const articles = [];

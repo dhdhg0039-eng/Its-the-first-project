@@ -13,7 +13,7 @@
         <div class="header-content">
             <div>
                 <h1 class="logo">🍷 Beverage Brain™</h1>
-                <p style="margin: 0.3rem 0 0; font-size: 0.9rem; opacity: 0.9;">Real-Time Beverage Industry Intelligence | Team TwinFlame™</p>
+                <p style="margin: 0.2rem 0 0; font-size: 0.85rem; opacity: 0.95;"><em>Every pour. Every brand. Beverage Brain — where the industry meets insight.</em></p>
             </div>
             <div class="header-controls">
                 <button id="refresh-btn" class="btn btn-primary">🔄 Refresh</button>
@@ -144,6 +144,25 @@
             <button id="chat-send" class="chat-send">Send</button>
         </div>
     </div>
+
+        <!-- Press Release Modal -->
+        <div id="press-modal" class="modal hidden">
+            <div class="modal-content">
+                <button id="press-close" class="modal-close">&times;</button>
+                <h3>Submit Press Release</h3>
+                <form id="press-form">
+                    <input type="text" id="pr-name" placeholder="Your name" required>
+                    <input type="email" id="pr-email" placeholder="Email" required>
+                    <input type="text" id="pr-company" placeholder="Company/Brand">
+                    <input type="text" id="pr-subject" placeholder="Subject">
+                    <textarea id="pr-message" placeholder="Paste your press release or message here" rows="6"></textarea>
+                    <div style="display:flex;gap:0.6rem;justify-content:flex-end;margin-top:0.7rem;">
+                        <button type="button" id="press-send" class="btn btn-primary">Send via Email</button>
+                        <button type="button" id="press-cancel" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     <!-- Scripts -->
     <script src="news-fetcher.js"></script>
