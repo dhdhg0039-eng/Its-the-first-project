@@ -15,6 +15,11 @@
   --danger: #e74c3c;
 }
 
+/* Webfont */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
@@ -335,6 +340,17 @@ header {
 .inline-search { display:flex; gap:0.6rem; align-items:center; margin-bottom:1rem; }
 .inline-search-box { flex:1; padding:0.9rem 1rem; border-radius:10px; border:1px solid var(--border); font-size:1rem; }
 .sort-select { padding:0.6rem; border-radius:8px; border:1px solid var(--border); background:white; }
+
+/* Sponsor slot */
+.sponsor-slot { background: linear-gradient(90deg, rgba(240,240,240,0.6), rgba(250,250,250,0.4)); border-radius:10px; padding:0.8rem 1rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between; }
+.sponsor-label { font-size:0.75rem; color:#999; font-weight:700; margin-right:0.8rem; }
+.sponsor-text a { color: var(--secondary); font-weight:700; text-decoration:none; }
+
+/* Trending */
+.trending-panel { background: white; border-radius:10px; padding:0.8rem; margin-bottom:1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.trending-list { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.trending-tag { background:#fff; border:1px solid var(--border); padding:0.35rem 0.6rem; border-radius:999px; cursor:pointer; font-weight:600; }
+.trending-tag .tcount { background:rgba(0,0,0,0.05); padding:0 6px; margin-left:6px; border-radius:8px; font-weight:700; }
 
 /* Tighter card grid and typography */
 .news-grid { gap:1.2rem; }

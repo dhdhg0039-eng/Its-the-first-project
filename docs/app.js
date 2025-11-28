@@ -226,6 +226,9 @@ class App {
     // Render featured hero (pick top article)
     this.renderFeatured();
 
+    // Render trending brands
+    this.renderTrending();
+
     if (this.filteredArticles.length === 0) {
       container.innerHTML = `
         <div class="no-results">
@@ -276,7 +279,17 @@ class App {
 
     if (!hero || !title) return;
 
-    const article = this.filteredArticles && this.filteredArticles.length ? this.filteredArticles[0] : (this.articles[0] || null);
+    // choose highest-scoring article as featured
+    const pool = (this.filteredArticles && this.filteredArticles.length) ? this.filteredArticles : (this.articles || []);
+    let article = null;
+    if (pool && pool.length) {
+      article = pool.reduce((best, cur) => {
+        if (!best) return cur;
+        return (cur.score || 0) > (best.score || 0) ? cur : best;
+      }, null);
+    } else {
+      article = this.articles[0] || null;
+    }
     if (!article) {
       hero.classList.add('hidden');
       return;
@@ -326,6 +339,30 @@ class App {
       const cls = this.selectedBrand === brand ? 'brand-tag active' : 'brand-tag';
       return `<button data-brand="${brand}" class="${cls}" title="Filter by ${brand}">${brand} <span class="badge">${count}</span></button>`;
     }).join(' ');
+  }
+
+  renderTrending() {
+    const list = document.getElementById('trending-list');
+    if (!list) return;
+    const counts = newsFetcher.brandCounts();
+    const entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+    if (entries.length === 0) {
+      list.innerHTML = '<span style="color:#666">No trending brands yet</span>';
+      return;
+    }
+    list.innerHTML = entries.slice(0, 12).map(([brand, count]) => `<button class="trending-tag" data-brand="${brand}">${brand} <span class="tcount">${count}</span></button>`).join(' ');
+
+    // attach click handlers for quick filter
+    list.querySelectorAll('.trending-tag').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const b = btn.getAttribute('data-brand');
+        if (!b) return;
+        this.selectedBrand = this.selectedBrand === b ? 'all' : b;
+        // open sidebar so user sees brand cloud selected
+        document.getElementById('sidebar')?.classList.remove('hidden');
+        this.applyFilters();
+      });
+    });
   }
 
   toggleBookmark(url, btn) {

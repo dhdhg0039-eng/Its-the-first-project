@@ -7,6 +7,28 @@ class NewsFetcher {
     this.brands = []; // will be loaded from brands.json
   }
 
+  // Source weighting to prefer trade and beverage-specific outlets
+  sourceWeight(source) {
+    const weights = {
+      'theguardian.com': 0.6,
+      'guardian.co.uk': 0.6,
+      'bloomberg.com': 0.9,
+      'cnbc.com': 0.8,
+      'thespiritsbusiness.com': 1.0,
+      'thedrinksbusiness.com': 1.0,
+      'liquor.com': 1.0,
+      'vinepair.com': 1.0,
+      'punchdrink.com': 0.9,
+      'Hacker News': 0.4
+    };
+    if (!source) return 0.5;
+    const s = source.toLowerCase();
+    for (const key of Object.keys(weights)) {
+      if (s.includes(key)) return weights[key];
+    }
+    return 0.6;
+  }
+
   async loadBrands() {
     try {
       const res = await fetch('brands.json');
@@ -43,6 +65,28 @@ class NewsFetcher {
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
+      });
+
+      // Ensure brands are present and compute mention counts + score
+      const now = Date.now();
+      unique.forEach(a => {
+        if (!a.brands) a.brands = this.detectBrands((a.title || '') + ' ' + (a.description || ''));
+        a.mentionCount = Array.isArray(a.brands) ? a.brands.length : 0;
+        // recency score: articles within 7 days get higher score
+        const ageMs = now - new Date(a.pubDate || now).getTime();
+        const days = Math.max(0, ageMs / (1000 * 60 * 60 * 24));
+        const recency = Math.max(0, 1 - (days / 7));
+        const mentionScore = Math.min(1, a.mentionCount / 4);
+        const sourceScore = this.sourceWeight(a.source || a.source?.name || '');
+        // weighted score: recency 50%, mentions 30%, source 20%
+        a.score = (recency * 0.5) + (mentionScore * 0.3) + (sourceScore * 0.2);
+      });
+
+      // compute brand counts map on aggregated set
+      this._brandCounts = {};
+      unique.forEach(a => {
+        if (!Array.isArray(a.brands)) return;
+        a.brands.forEach(b => { this._brandCounts[b] = (this._brandCounts[b] || 0) + 1; });
       });
 
       // Keep only liquor/alcohol related articles (whitelist)
@@ -113,6 +157,11 @@ class NewsFetcher {
     } catch (error) {
       return [];
     }
+  }
+
+  // Return aggregated brand counts
+  brandCounts() {
+    return this._brandCounts || {};
   }
 
   async fetchFromNewsAPI() {
